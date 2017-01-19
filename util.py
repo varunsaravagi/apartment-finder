@@ -16,7 +16,7 @@ def coord_distance(lat1, lon1, lat2, lon2):
     a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
     c = 2 * math.asin(math.sqrt(a))
     km = 6367 * c
-    return km
+    return float(format(float(km/1.6), '.2f'))
 
 def in_box(coords, box):
     """
@@ -35,7 +35,7 @@ def post_listing_to_slack(sc, listing):
     :param sc: A slack client.
     :param listing: A record of the listing.
     """
-    desc = "{0} | {1} | {2} | {3} | <{4}>".format(listing["area"], listing["price"], listing["bart_dist"], listing["name"], listing["url"])
+    desc = "*** {0} | {1} | Work distance: {2} miles | Bart stop: {3} ({4} miles) | {5} | <{6}>".format(listing["area"], listing["price"], listing["dist_from_work"], listing["bart"], listing["bart_dist"], listing["name"], listing["url"])
     sc.api_call(
         "chat.postMessage", channel=settings.SLACK_CHANNEL, text=desc,
         username='pybot', icon_emoji=':robot_face:'
@@ -56,10 +56,10 @@ def find_points_of_interest(geotag, location):
     bart_dist = "N/A"
     bart = ""
     # Look to see if the listing is in any of the neighborhood boxes we defined.
-    for a, coords in settings.BOXES.items():
-        if in_box(geotag, coords):
-            area = a
-            area_found = True
+    # for a, coords in settings.BOXES.items():
+    #     if in_box(geotag, coords):
+    #         area = a
+    #         area_found = True
 
     # Check to see if the listing is near any transit stations.
     for station, coords in settings.TRANSIT_STATIONS.items():
@@ -77,11 +77,13 @@ def find_points_of_interest(geotag, location):
         for hood in settings.NEIGHBORHOODS:
             if hood in location.lower():
                 area = hood
-
+    
+    dist_from_work = coord_distance(settings.WORK_COORDS[0], settings.WORK_COORDS[1], geotag[0], geotag[1])
     return {
         "area_found": area_found,
         "area": area,
         "near_bart": near_bart,
         "bart_dist": bart_dist,
-        "bart": bart
+        "bart": bart,
+        "dist_from_work": dist_from_work,
     }
