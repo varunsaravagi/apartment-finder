@@ -49,7 +49,6 @@ def scrape_area(filter):
     cl_h = CraigslistHousing(site=settings.CRAIGSLIST_SITE, area=settings.AREA, category=settings.CRAIGSLIST_HOUSING_SECTION,
                              filters=filter)
     
-    print("Scraping done")
     results = []
     gen = cl_h.get_results(sort_by='newest', geotagged=True, limit=20)
     while True:
@@ -126,14 +125,16 @@ def do_scrape():
     # Get all the results from craigslist.
     all_results = []
     for filter in settings.FILTERS:
-        all_results += scrape_area(filter)
+        results = scrape_area(filter)
+        if len(results) > 0:
+            filter_text = "------- {} BR/{} BA -------".format(filter['bedrooms'], filter['bathrooms'])
+            sc.api_call(
+                "chat.postMessage", channel=settings.SLACK_CHANNEL, text=filter_text,
+                username='pybot', icon_emoji=':robot_face:'
+            ) 
+            for result in results:
+                post_listing_to_slack(sc, result)
 
-    print("{}: Got {} results".format(time.ctime(), len(all_results)))
-
-    # Post each result to slack.
-    for result in all_results:
-        # print(result)
-        post_listing_to_slack(sc, result)
 
 if __name__ == '__main__':
     do_scrape()
