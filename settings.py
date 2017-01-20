@@ -19,6 +19,22 @@ FILTERS = [
         search_distance=5,
         zip_code=94105,
     ),
+    dict(
+        max_price=3000,
+        bedrooms=2,
+        bathrooms=2,
+        has_image=True,
+        search_distance=5,
+        zip_code=94105,
+    ),
+    dict(
+        max_price=3000,
+        bedrooms=2,
+        bathrooms=1,
+        has_image=True,
+        search_distance=5,
+        zip_code=94105,
+    ),
 ]
 ## Location preferences
 
